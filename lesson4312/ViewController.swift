@@ -7,9 +7,24 @@
 
 import UIKit
 
+enum messageStatus {
+    case read
+    case unread
+}
+
+struct MessageStruct {
+    var text = String()
+    var status: messageStatus = messageStatus.unread
+}
+
 class ViewController: UIViewController {
 
     var students = ["Nursultan", "Anton", "Zalkar", "Ian", "Sultan", "Nissi"]
+    var studentsData = [
+        MessageStruct(text: "Nursultan"),
+        MessageStruct(text: "Anton"),
+        MessageStruct(text: "Zalkar"),
+        MessageStruct(text: "Ian")]
     
     @IBOutlet weak var studentsTableView: UITableView!
     
@@ -37,7 +52,8 @@ class ViewController: UIViewController {
     }
     
     @objc func addCell() {
-        students.insert("new student", at: 0)
+        let newStudent = MessageStruct(text: "new student")
+        studentsData.insert(newStudent, at: 0)
         
         studentsTableView.reloadData()
     }
@@ -47,14 +63,21 @@ class ViewController: UIViewController {
 extension ViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return students.count
+        return studentsData.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = UITableViewCell(style: .default, reuseIdentifier: "student_cell")
-        cell.textLabel?.text = students[indexPath.row]
+        cell.textLabel?.text = studentsData[indexPath.row].text
         cell.imageView?.image = UIImage(systemName: "person")
+        
+        if studentsData[indexPath.row].status == messageStatus.read {
+            cell.tintColor = .green
+        } else {
+            cell.tintColor = .red
+        }
+        cell.textLabel?.textColor = cell.tintColor
         
         return cell
     }
@@ -63,8 +86,11 @@ extension ViewController: UITableViewDataSource {
 extension ViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        
-        return 100
+        if studentsData[indexPath.row].status == messageStatus.read {
+            return 100
+        } else {
+            return 50
+        }
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -72,7 +98,10 @@ extension ViewController: UITableViewDelegate {
         let infoViewController = storyboard!.instantiateViewController(withIdentifier: "info_vc") as! InfoViewController
         
 
-        infoViewController.rowInfo = students[indexPath.row]
+        infoViewController.rowInfo = studentsData[indexPath.row].text
+        studentsData[indexPath.row].status = messageStatus.read
+        
+        studentsTableView.reloadData()
         
         navigationController?.pushViewController(infoViewController, animated: false)
     }
